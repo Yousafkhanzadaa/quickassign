@@ -1,0 +1,19 @@
+{
+  "name": "quickassign",
+  "private": true,
+  "license": "MIT",
+  "packageManager": "pnpm@10.28.2",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "./scripts/start.sh",
+    "stop": "docker compose down",
+    "build": "pnpm -r --filter=!./apps/web build && pnpm --filter @qa/web build",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test"
+  },
+  "devDependencies": {
+    "typescript": "6.0.3"
+  }
+}

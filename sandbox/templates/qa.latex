@@ -1,0 +1,91 @@
+% QuickAssign worked-solution template. The model never writes LaTeX structure: it only
+% supplies the Markdown body, which pandoc converts with raw TeX disabled.
+\documentclass[11pt,a4paper]{article}
+\usepackage{fontspec}
+\defaultfontfeatures{Ligatures=TeX}
+\usepackage[margin=2.2cm,headheight=14pt]{geometry}
+\usepackage{amsmath,amssymb,mathtools}
+\usepackage{bm}
+\usepackage{xcolor}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{longtable,booktabs,array,calc}
+\usepackage{caption}
+\captionsetup[table]{skip=6pt}
+\newcounter{none} % pandoc emits \LTcaptype{none} for unnumbered tables
+\usepackage{multirow}
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+\IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
+\makesavenoteenv{longtable}
+\usepackage{fancyvrb}
+\usepackage{enumitem}
+\usepackage{soul} % pandoc renders ~~strikeout~~ as \st and underline as \ul
+\usepackage{parskip}
+\usepackage{graphicx}
+\usepackage[hidelinks]{hyperref}
+\usepackage{xurl}
+\usepackage{bookmark}
+
+\providecommand{\tightlist}{\setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\providecommand{\pandocbounded}[1]{#1}
+\setlength{\emergencystretch}{3em}
+\setcounter{secnumdepth}{0}
+$if(highlighting-macros)$
+$highlighting-macros$
+$endif$
+
+\definecolor{qamuted}{gray}{0.35}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\color{qamuted}$if(course)$$course$$endif$}
+\fancyhead[R]{\small\color{qamuted}$if(student-name)$$student-name$$endif$}
+\fancyfoot[C]{\small\color{qamuted}Page \thepage\ of \pageref*{LastPage}}
+\renewcommand{\headrulewidth}{0.3pt}
+
+\begin{document}
+
+\begin{center}
+$if(university)$
+{\large\bfseries $university$}\\[4pt]
+$endif$
+{\Large\bfseries $title$}\\[2pt]
+$if(subtitle)$
+{\normalsize\color{qamuted} $subtitle$}
+$endif$
+\end{center}
+
+\noindent\begin{tabular}{@{}p{0.22\linewidth}p{0.74\linewidth}@{}}
+$if(student-name)$
+\textbf{Name} & $student-name$ \\
+$endif$
+$if(roll-number)$
+\textbf{Roll No.} & $roll-number$ \\
+$endif$
+$if(course)$
+\textbf{Course} & $course$ \\
+$endif$
+$if(instructor)$
+\textbf{Instructor} & $instructor$ \\
+$endif$
+$if(due)$
+\textbf{Due} & $due$ \\
+$endif$
+$if(date)$
+\textbf{Prepared} & $date$ \\
+$endif$
+\end{tabular}
+
+\medskip\hrule\bigskip
+
+$body$
+
+$if(disclosure)$
+\bigskip
+\noindent\rule{\linewidth}{0.3pt}\par
+{\footnotesize\itshape\color{qamuted} $disclosure$\par}
+$endif$
+
+\end{document}

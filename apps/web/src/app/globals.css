@@ -1,0 +1,149 @@
+@import "tailwindcss";
+
+@theme {
+  /* Fonts are self-hosted with next/font/local (src/app/layout.tsx). */
+  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", Arial, sans-serif;
+  --font-display: var(--font-bricolage), var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+
+  --color-brand-50: #ecfdf5;
+  --color-brand-100: #d1fae5;
+  --color-brand-200: #a7f3d0;
+  --color-brand-300: #6ee7b7;
+  --color-brand-400: #34d399;
+  --color-brand-500: #10b981;
+  --color-brand-600: #059669;
+  --color-brand-700: #047857;
+  --color-brand-800: #065f46;
+  --color-brand-900: #064e3b;
+
+  /* Deep navy for dark sections. */
+  --color-ink-700: #1e3350;
+  --color-ink-800: #12233a;
+  --color-ink-900: #0b1728;
+  --color-ink-950: #07101d;
+
+  --animate-float: float 7s ease-in-out infinite;
+  --animate-float-slow: float 9s ease-in-out -3s infinite;
+  --animate-rise: rise 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+
+  @keyframes float {
+    0%,
+    100% {
+      translate: 0 0;
+    }
+    50% {
+      translate: 0 -10px;
+    }
+  }
+  @keyframes rise {
+    from {
+      opacity: 0;
+      translate: 0 14px;
+    }
+    to {
+      opacity: 1;
+      translate: 0 0;
+    }
+  }
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+  body {
+    @apply bg-slate-50 font-sans text-slate-900 antialiased;
+  }
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-brand-600;
+  }
+  ::selection {
+    @apply bg-brand-200 text-brand-900;
+  }
+}
+
+/* Reusable component classes (Tailwind v4 custom utilities, so they compose with variants). */
+@utility card {
+  @apply rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_1px_2px_rgb(15_23_42/0.04),0_8px_24px_-12px_rgb(15_23_42/0.08)];
+}
+@utility btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition duration-150 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-50;
+}
+@utility btn-primary {
+  @apply btn bg-brand-600 text-white shadow-sm shadow-brand-700/20 hover:bg-brand-700;
+}
+@utility btn-dark {
+  @apply btn bg-ink-950 text-white shadow-sm hover:bg-ink-800;
+}
+@utility btn-secondary {
+  @apply btn border border-slate-300 bg-white text-slate-800 shadow-sm hover:border-slate-400 hover:bg-slate-50;
+}
+@utility btn-ghost {
+  @apply btn text-slate-700 hover:bg-slate-900/5 hover:text-slate-900;
+}
+@utility btn-danger {
+  @apply btn bg-red-600 text-white hover:bg-red-700;
+}
+@utility input {
+  @apply w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-base text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-brand-600 focus:ring-4 focus:ring-brand-600/10 focus:outline-none;
+}
+@utility label {
+  @apply mb-1.5 block text-sm font-medium text-slate-700;
+}
+@utility badge {
+  @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold;
+}
+@utility link {
+  @apply font-medium text-brand-700 underline-offset-2 hover:underline;
+}
+@utility eyebrow {
+  @apply text-xs font-bold tracking-[0.14em] text-brand-700 uppercase;
+}
+
+/* Decorative backgrounds. */
+@utility bg-grid {
+  background-image:
+    linear-gradient(to right, rgb(15 23 42 / 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(15 23 42 / 0.06) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+@utility bg-dots {
+  background-image: radial-gradient(rgb(255 255 255 / 0.14) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+@utility bg-chat {
+  background-color: #efeae2;
+  background-image: radial-gradient(rgb(120 98 70 / 0.1) 1px, transparent 1px);
+  background-size: 14px 14px;
+}
+@utility fade-radial {
+  mask-image: radial-gradient(ellipse 75% 65% at 50% 35%, black 35%, transparent 100%);
+}
+@utility fade-bottom {
+  mask-image: linear-gradient(to bottom, black 60%, transparent);
+}
+
+/* Long-form text on the legal pages. */
+@layer components {
+  .legal h2 {
+    @apply mt-12 font-display text-2xl font-semibold tracking-tight text-slate-900;
+  }
+  .legal h3 {
+    @apply mt-6 font-semibold text-slate-900;
+  }
+  .legal p {
+    @apply mt-4 leading-relaxed text-slate-700;
+  }
+  .legal ul {
+    @apply mt-4 list-disc space-y-2.5 pl-5 leading-relaxed text-slate-700 marker:text-brand-500;
+  }
+  .legal a {
+    @apply font-medium text-brand-700 underline underline-offset-2;
+  }
+}

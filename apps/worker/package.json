@@ -1,0 +1,31 @@
+{
+  "name": "@qa/worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "start": "node dist/main.js",
+    "migrate": "node dist/migrate.js",
+    "dev": "tsx watch src/main.ts"
+  },
+  "dependencies": {
+    "@qa/core": "workspace:*",
+    "graphile-worker": "0.18.0",
+    "katex": "0.19.0",
+    "kysely": "0.29.6",
+    "openai": "7.28.0",
+    "pg": "8.23.1",
+    "pino": "10.4.0",
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "@types/node": "26.6.4",
+    "@types/pg": "8.23.1",
+    "tsx": "4.23.15",
+    "typescript": "6.0.3",
+    "vitest": "5.0.3"
+  }
+}

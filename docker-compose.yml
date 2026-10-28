@@ -1,0 +1,157 @@
+# QuickAssign local stack. Network layout (see docs/security-architecture.md):
+#   backend   (internal, no internet): postgres, migrate, gateway, worker, web
+#   sandboxnet(internal, no internet): sandbox <-> worker only
+#   egress    (internet):              gateway (WhatsApp), worker (OpenAI, Safepay)
+#   frontend  (published port):        web (also reaches Safepay's API through it)
+# Every service gets only the secrets it needs.
+
+x-hardening: &hardening
+  read_only: true
+  cap_drop: [ALL]
+  security_opt: ["no-new-privileges:true"]
+  tmpfs:
+    - /tmp:rw,size=256m,mode=1777
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_DB: quickassign
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?run scripts/gen-env.sh}
+      QA_OWNER_PASSWORD: ${QA_OWNER_PASSWORD}
+      QA_QUEUE_PASSWORD: ${QA_QUEUE_PASSWORD}
+      QA_WEB_PASSWORD: ${QA_WEB_PASSWORD}
+      QA_WORKER_PASSWORD: ${QA_WORKER_PASSWORD}
+      QA_GATEWAY_PASSWORD: ${QA_GATEWAY_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+    networks: [backend]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d quickassign"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+
+  migrate:
+    build: { context: ., dockerfile: apps/worker/Dockerfile }
+    image: quickassign/worker:dev
+    command: ["node", "dist/migrate.js"]
+    environment:
+      OWNER_DATABASE_URL: postgres://qa_owner:${QA_OWNER_PASSWORD}@postgres:5432/quickassign
+      QUEUE_DATABASE_URL: postgres://qa_queue:${QA_QUEUE_PASSWORD}@postgres:5432/quickassign
+      MIGRATIONS_DIR: /app/db/migrations
+    depends_on:
+      postgres: { condition: service_healthy }
+    networks: [backend]
+    <<: *hardening
+    restart: "no"
+
+  gateway:
+    build: { context: ./gateway }
+    image: quickassign/gateway:dev
+    environment:
+      GATEWAY_DATABASE_URL: postgres://qa_gateway:${QA_GATEWAY_PASSWORD}@postgres:5432/quickassign
+      GATEWAY_KEK: ${GATEWAY_KEK}
+      GATEWAY_KEK_ID: ${GATEWAY_KEK_ID:-gw-local-v1}
+      APP_KEK: ${APP_KEK}
+      APP_KEK_ID: ${APP_KEK_ID:-app-local-v1}
+      GATEWAY_SECRET_WEB: ${GATEWAY_SECRET_WEB}
+      GATEWAY_SECRET_WORKER: ${GATEWAY_SECRET_WORKER}
+      GATEWAY_INSTANCE_ID: gateway-1
+      LOG_LEVEL: info
+    volumes:
+      - wa_sessions:/data/sessions
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+    networks: [backend, egress]
+    <<: *hardening
+    restart: unless-stopped
+
+  sandbox:
+    build: { context: ./sandbox }
+    image: quickassign/sandbox:dev
+    environment:
+      SANDBOX_TOKEN: ${SANDBOX_TOKEN}
+    networks: [sandboxnet]
+    <<: *hardening
+    pids_limit: 128
+    mem_limit: 1g
+    cpus: 2
+    restart: unless-stopped
+
+  worker:
+    image: quickassign/worker:dev
+    command: ["node", "dist/main.js"]
+    environment:
+      WORKER_DATABASE_URL: postgres://qa_worker:${QA_WORKER_PASSWORD}@postgres:5432/quickassign
+      QUEUE_DATABASE_URL: postgres://qa_queue:${QA_QUEUE_PASSWORD}@postgres:5432/quickassign
+      APP_KEK: ${APP_KEK}
+      APP_KEK_ID: ${APP_KEK_ID:-app-local-v1}
+      GATEWAY_URL: http://gateway:8081
+      GATEWAY_SECRET_WORKER: ${GATEWAY_SECRET_WORKER}
+      SANDBOX_URL: http://sandbox:8090
+      SANDBOX_TOKEN: ${SANDBOX_TOKEN}
+      APP_BASE_URL: ${APP_BASE_URL:-http://localhost:3000}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_DETECT_MODEL: ${OPENAI_DETECT_MODEL:-gpt-6-luna}
+      OPENAI_SOLVE_MODEL: ${OPENAI_SOLVE_MODEL:-gpt-6.1-sol}
+      OPENAI_SOLVE_EFFORT: ${OPENAI_SOLVE_EFFORT:-high}
+      # Payment reconciliation (only used when PAYMENTS_PROVIDER=safepay on web)
+      SAFEPAY_ENV: ${SAFEPAY_ENV:-sandbox}
+      SAFEPAY_API_KEY: ${SAFEPAY_API_KEY:-}
+      SAFEPAY_SECRET_KEY: ${SAFEPAY_SECRET_KEY:-}
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+      gateway: { condition: service_started }
+      sandbox: { condition: service_started }
+    networks: [backend, sandboxnet, egress]
+    <<: *hardening
+    restart: unless-stopped
+
+  web:
+    build: { context: ., dockerfile: apps/web/Dockerfile }
+    image: quickassign/web:dev
+    environment:
+      WEB_DATABASE_URL: postgres://qa_web:${QA_WEB_PASSWORD}@postgres:5432/quickassign
+      APP_KEK: ${APP_KEK}
+      APP_KEK_ID: ${APP_KEK_ID:-app-local-v1}
+      GATEWAY_URL: http://gateway:8081
+      GATEWAY_SECRET_WEB: ${GATEWAY_SECRET_WEB}
+      APP_BASE_URL: ${APP_BASE_URL:-http://localhost:3000}
+      FREE_SIGNUP_CREDITS: ${FREE_SIGNUP_CREDITS:-5}
+      # Payments: safepay | mock (localhost only, local database only) | disabled
+      PAYMENTS_PROVIDER: ${PAYMENTS_PROVIDER:-disabled}
+      SAFEPAY_ENV: ${SAFEPAY_ENV:-sandbox}
+      SAFEPAY_API_KEY: ${SAFEPAY_API_KEY:-}
+      SAFEPAY_SECRET_KEY: ${SAFEPAY_SECRET_KEY:-}
+      SAFEPAY_WEBHOOK_SECRET: ${SAFEPAY_WEBHOOK_SECRET:-}
+      # Public site details (footer and legal pages)
+      LEGAL_NAME: ${LEGAL_NAME:-QuickAssign}
+      CONTACT_EMAIL: ${CONTACT_EMAIL:-}
+      CONTACT_ADDRESS: ${CONTACT_ADDRESS:-}
+      REPO_URL: ${REPO_URL:-}
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+    ports:
+      - "127.0.0.1:3000:3000"
+    networks: [backend, frontend]
+    <<: *hardening
+    tmpfs:
+      - /tmp:rw,size=256m,mode=1777
+      - /app/apps/web/.next/cache:rw,size=256m,uid=1000,gid=1000
+    restart: unless-stopped
+
+networks:
+  backend:
+    internal: true
+  sandboxnet:
+    internal: true
+  egress: {}
+  frontend: {}
+
+volumes:
+  pgdata: {}
+  wa_sessions: {}
