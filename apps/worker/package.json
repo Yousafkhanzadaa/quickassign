@@ -14,18 +14,18 @@
   "dependencies": {
     "@qa/core": "workspace:*",
     "graphile-worker": "0.18.0",
-    "katex": "0.19.0",
-    "kysely": "0.29.6",
-    "openai": "7.28.0",
+    "katex": "0.19.1",
+    "kysely": "0.29.7",
+    "openai": "7.43.0",
     "pg": "8.23.1",
     "pino": "10.4.0",
-    "zod": "4.6.5"
+    "zod": "4.6.7"
   },
   "devDependencies": {
-    "@types/node": "26.6.4",
+    "@types/node": "26.6.5",
     "@types/pg": "8.23.1",
     "tsx": "4.23.15",
     "typescript": "6.0.3",
-    "vitest": "5.0.3"
+    "vitest": "5.0.5"
   }
 }
