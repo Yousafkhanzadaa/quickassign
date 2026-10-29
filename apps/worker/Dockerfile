@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 # Build context: repository root.
-FROM node:24-bookworm-slim AS build
+FROM node:25-bookworm-slim AS build
 RUN corepack enable
 WORKDIR /repo
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml tsconfig.base.json ./
@@ -15,7 +15,7 @@ RUN pnpm --filter @qa/core build \
  && pnpm --filter @qa/worker test \
  && pnpm --filter @qa/worker deploy --prod --legacy /out
 
-FROM node:24-bookworm-slim
+FROM node:25-bookworm-slim
 ENV NODE_ENV=production
 WORKDIR /app
 COPY --from=build /out /app
