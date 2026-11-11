@@ -5,7 +5,7 @@ go 1.26.8
 require (
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.11.0
-	github.com/ncruces/go-sqlite3 v0.35.6
+	github.com/ncruces/go-sqlite3 v0.37.0
 	go.mau.fi/whatsmeow v0.0.0-20260929112325-8b41cfe6d9c4
 	google.golang.org/protobuf v1.36.12
 )
@@ -20,7 +20,7 @@ require (
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
-	github.com/ncruces/go-sqlite3-wasm/v6 v6.3.35304 // indirect
+	github.com/ncruces/go-sqlite3-wasm/v6 v6.5.35401 // indirect
 	github.com/ncruces/julianday v1.0.0 // indirect
 	github.com/petermattis/goid v0.0.0-20260820044319-269ab09b5261 // indirect
 	github.com/rs/zerolog v1.35.1 // indirect
