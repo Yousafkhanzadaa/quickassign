@@ -8,7 +8,7 @@ RUN go vet ./... && go test ./... \
 
 # Official pandoc image with TeX Live (XeLaTeX). Runtime has no network, so everything
 # the template needs is installed and exercised here at build time.
-FROM pandoc/latex:3.11.0.0-debian
+FROM pandoc/latex:3.14.0.0-debian
 USER root
 RUN apt-get update \
  && apt-get install -y --no-install-recommends poppler-utils fontconfig \
